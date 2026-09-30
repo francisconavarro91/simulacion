@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+<title>Dashboard Biogás</title>
+ 
+https://unpkg.com/mqtt/dist/mqtt.min.jsscript>
+ 
+<style>
+ 
+body{
+margin:0;
+font-family:Arial;
+background:#ececec;
+}
+ 
+.header{
+background:#d0d0d0;
+padding:15px;
+text-align:center;
+font-size:24px;
+font-weight:bold;
+}
+ 
+.container{
+display:grid;
+grid-template-columns:250px 1fr;
+gap:20px;
+padding:20px;
+}
+ 
+.panel{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+ 
+.variable{
+margin-bottom:25px;
+}
+ 
+.label{
+font-weight:bold;
+font-size:20px;
+}
+ 
+.value{
+font-size:40px;
+color:#0066cc;
+}
+ 
+svg{
+width:100%;
+height:auto;
+}
+ 
+.status{
+margin-top:20px;
+font-weight:bold;
+}
+ 
+.online{
+color:green;
+}
+ 
+.offline{
+color:red;
+}
+ 
+.qr{
+margin-top:20px;
+text-align:center;
+}
+ 
+</style>
+</head>
+ 
+<body>
+ 
+<div class="header">
+ESTADO PROCESO GENERACIÓN
+</div>
+ 
+<div class="container">
+ 
+<div class="panel">
+ 
+<div class="variable">
+<div class="label">Nivel</div>
+<div id="lit_01" class="value">0</div>
+</div>
+ 
+<div class="variable">
+<div class="label">Temperatura</div>
+<div id="tit_01" class="value">0</div>
+</div>
+ 
+<div class="variable">
+<div class="label">Flujo</div>
+<div id="fit_01" class="value">0</div>
+</div>
+ 
+<div id="mqttStatus" class="status offline">
+Desconectado
+</div>
+ 
+<div class="qr">
+<h3>Acceso Remoto</h3>
+ 
+https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://TU_USUARIO.github.io/dashboard-biogas/
+</div>
+ 
+</div>
+ 
+<div class="panel">
+ 
+<svg viewBox="0 0 800 500">
+ 
+<rect x="180" y="300" width="180" height="90"
+fill="#f4e3a0"
+stroke="black"/>
+ 
+<text x="220" y="350"
+font-size="18">
+FERMENTADOR
+</text>
+ 
+<rect x="500" y="180" width="180" height="90"
+fill="#f4e3a0"
+stroke="black"/>
+ 
+<text x="535" y="230"
+font-size="18">
+STORAGE TANK
+</text>
+ 
+<line x1="360" y1="330"
+x2="500" y2="220"
+stroke="#e4c542"
+stroke-width="8"/>
+ 
+<line x1="90" y1="320"
+x2="180" y2="330"
+stroke="green"
+stroke-width="8"/>
+ 
+</svg>
+ 
+</div>
+ 
+</div>
+ 
+<script>
+ 
+const broker =
+"wss://TU_BROKER:8084/mqtt";
+ 
+const options = {
+ 
+clientId:
+"dashboard_" +
+Math.random().toString(16).substring(2)
+};
+ 
+const client =
+mqtt.connect(
+broker,
+options
+);
+ 
+client.on('connect', ()=>{
+ 
+document.getElementById(
+"mqttStatus"
+).innerHTML="Conectado";
+ 
+document.getElementById(
+"mqttStatus"
+).className="status online";
+ 
+client.subscribe("lit_01");
+client.subscribe("tit_01");
+client.subscribe("fit_01");
+ 
+});
+ 
+client.on('message',(topic,message)=>{
+ 
+const valor =
+message.toString();
+ 
+if(topic==="lit_01")
+document.getElementById(
+"lit_01"
+).innerHTML=
+valor+" L";
+ 
+if(topic==="tit_01")
+document.getElementById(
+"tit_01"
+).innerHTML=
+valor+" °C";
+ 
+if(topic==="fit_01")
+document.getElementById(
+"fit_01"
+).innerHTML=
+valor+" m³/h";
+ 
+});
+ 
+client.on('offline',()=>{
+ 
+document.getElementById(
+"mqttStatus"
+).innerHTML=
+"Desconectado";
+ 
+document.getElementById(
+"mqttStatus"
+).className=
+"status offline";
+ 
+});
+ 
+</script>
+ 
+</body>
+</html>
